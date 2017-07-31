@@ -76,16 +76,13 @@ public class GoogleAnalyticsBridge extends ReactContextBaseJavaModule {
                         .setCategory(category)
                         .setAction(action);
 
-            if (optionalValues != null)
+            if (optionalValues.hasKey("label"))
             {
-                if (optionalValues.hasKey("label"))
-                {
-                    hit.setLabel(optionalValues.getString("label"));
-                }
-                if (optionalValues.hasKey("value"))
-                {
-                    hit.setValue(optionalValues.getInt("value"));
-                }
+                hit.setLabel(optionalValues.getString("label"));
+            }
+            if (optionalValues.hasKey("value"))
+            {
+                hit.setValue(optionalValues.getInt("value"));
             }
 
             tracker.send(hit.build());
@@ -102,16 +99,13 @@ public class GoogleAnalyticsBridge extends ReactContextBaseJavaModule {
                         .setCategory(category)
                         .setValue(value.longValue());
 
-            if (optionalValues != null)
+            if (optionalValues.hasKey("name"))
             {
-                if (optionalValues.hasKey("name"))
-                {
-                    hit.setVariable(optionalValues.getString("name"));
-                }
-                if (optionalValues.hasKey("label"))
-                {
-                    hit.setLabel(optionalValues.getString("label"));
-                }
+                hit.setVariable(optionalValues.getString("name"));
+            }
+            if (optionalValues.hasKey("label"))
+            {
+                hit.setLabel(optionalValues.getString("label"));
             }
 
             tracker.send(hit.build());
@@ -323,17 +317,13 @@ public class GoogleAnalyticsBridge extends ReactContextBaseJavaModule {
                         .setCategory(category)
                         .setAction(action);
 
-
-            if (optionalValues != null)
+            if (optionalValues.hasKey("label"))
             {
-                if (optionalValues.hasKey("label"))
-                {
-                    hit.setLabel(optionalValues.getString("label"));
-                }
-                if (optionalValues.hasKey("value"))
-                {
-                    hit.setValue(optionalValues.getInt("value"));
-                }
+                hit.setLabel(optionalValues.getString("label"));
+            }
+            if (optionalValues.hasKey("value"))
+            {
+                hit.setValue(optionalValues.getInt("value"));
             }
 
             ReadableMapKeySetIterator iterator = dimensionIndexValues.keySetIterator();
@@ -343,6 +333,76 @@ public class GoogleAnalyticsBridge extends ReactContextBaseJavaModule {
                 hit.setCustomDimension(Integer.parseInt(dimensionIndex), dimensionValue);
             }
 
+            tracker.send(hit.build());
+        }
+    }
+
+    @ReactMethod
+    public void trackMeasuringImpressionsWithCustomDimensionValues(String trackerId, ReadableMap product, String screenName, String impressionSource, ReadableMap dimensionIndexValues){
+        Tracker tracker = getTracker(trackerId);
+
+        if (tracker != null) {
+            Product ecommerceProduct = this.getPurchaseProduct(product);
+            HitBuilders.ScreenViewBuilder hit = new HitBuilders.ScreenViewBuilder()
+                   .addImpression(ecommerceProduct, impressionSource);
+
+             ReadableMapKeySetIterator iterator = dimensionIndexValues.keySetIterator();
+             while (iterator.hasNextKey()) {
+                 String dimensionIndex = iterator.nextKey();
+                 String dimensionValue = dimensionIndexValues.getString(dimensionIndex);
+                 ecommerceProduct.setCustomDimension(Integer.parseInt(dimensionIndex), dimensionValue);
+             }
+            tracker.setScreenName(screenName);
+            tracker.send(hit.build());
+        }
+    }
+
+    @ReactMethod
+    public void trackMeasuringActionsWithCustomDimensionValues(String trackerId, ReadableMap product, String screenName, String actionList, ReadableMap dimensionIndexValues){
+        Tracker tracker = getTracker(trackerId);
+
+        if (tracker != null) {
+            Product ecommerceProduct = this.getPurchaseProduct(product);
+            ProductAction productAction = new ProductAction(ProductAction.ACTION_CLICK)
+                   .setProductActionList(actionList);
+            HitBuilders.ScreenViewBuilder hit = new HitBuilders.ScreenViewBuilder()
+                   .addProduct(ecommerceProduct)
+                   .setProductAction(productAction);
+
+             ReadableMapKeySetIterator iterator = dimensionIndexValues.keySetIterator();
+             while (iterator.hasNextKey()) {
+                 String dimensionIndex = iterator.nextKey();
+                 String dimensionValue = dimensionIndexValues.getString(dimensionIndex);
+                 ecommerceProduct.setCustomDimension(Integer.parseInt(dimensionIndex), dimensionValue);
+             }
+            tracker.setScreenName(screenName);
+            tracker.send(hit.build());
+        }
+    }
+
+    @ReactMethod
+    public void trackMeasuringCheckout(String trackerId, ReadableArray products, String screenName, Integer step, String option, ReadableMap dimensionIndexValues){
+        Tracker tracker = getTracker(trackerId);
+
+        if (tracker != null) {
+            ProductAction productAction = new ProductAction(ProductAction.ACTION_CHECKOUT)
+                   .setCheckoutStep(step)
+                   .setCheckoutOptions(option);
+            HitBuilders.ScreenViewBuilder hit = new HitBuilders.ScreenViewBuilder()
+                   .setProductAction(productAction);
+
+             for (int i = 0; i < products.size(); i++) {
+                 Product product = this.getPurchaseProduct(products.getMap(i));
+                 ReadableMapKeySetIterator iterator = dimensionIndexValues.keySetIterator();
+                 while (iterator.hasNextKey()) {
+                     String dimensionIndex = iterator.nextKey();
+                     String dimensionValue = dimensionIndexValues.getString(dimensionIndex);
+                     product.setCustomDimension(Integer.parseInt(dimensionIndex), dimensionValue);
+                 }
+                 hit.addProduct(product);
+             }
+
+            tracker.setScreenName(screenName);
             tracker.send(hit.build());
         }
     }
@@ -424,29 +484,6 @@ public class GoogleAnalyticsBridge extends ReactContextBaseJavaModule {
         if (tracker != null)
         {
             tracker.setAppVersion(appVersion);
-        }
-    }
-
-    @ReactMethod
-    public void setCurrency(String trackerId, String currencyCode)
-    {
-        Tracker tracker = getTracker(trackerId);
-
-        if (tracker != null) {
-            tracker.set("&cu", currencyCode);
-        }
-    }
-
-    @ReactMethod
-    public void trackCampaignFromUrl(String trackerId, String urlString){
-        Tracker tracker = getTracker(trackerId);
-
-        if (tracker != null)
-        {
-            tracker.setScreenName("Init With Campaign");
-            tracker.send(new HitBuilders.ScreenViewBuilder()
-                                        .setCampaignParamsFromUrl(urlString)
-                                        .build());
         }
     }
 }

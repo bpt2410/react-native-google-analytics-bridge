@@ -55,14 +55,6 @@ export class GoogleAnalyticsTracker {
   trackScreenView(screenName) {
     GoogleAnalyticsBridge.trackScreenView(this.id, screenName);
   }
-  
-  /**
-   * Track the campaign from url
-   * @param  {String} urlString The url of the deep link
-   */
-  trackCampaignFromUrl(urlString) {
-    GoogleAnalyticsBridge.trackCampaignFromUrl(this.id, urlString);
-  }
 
   /**
    * Track an event that has occured
@@ -142,6 +134,42 @@ export class GoogleAnalyticsTracker {
   }
 
   /**
+   * Track a impression with custom dimensions. This uses the Enhanced Ecommerce GA feature.
+   * @param  {Object} product       a object with product values
+   * @param  {String} screenName   The screen name
+   * @param  {String} impressionSource The impression source
+   * @param  {Object} customDimensionValues An object containing custom dimension key/value pairs
+   */
+  trackMeasuringImpressionsWithCustomDimensionValues(product = {}, screenName = "Home", impressionSource = "Home", customDimensionValues) {
+    const formattedCustomDimensions = this.transformCustomDimensionsFieldsToIndexes(customDimensionValues);
+    GoogleAnalyticsBridge.trackMeasuringImpressionsWithCustomDimensionValues(this.id, product, screenName, impressionSource, formattedCustomDimensions);
+  }
+
+  /**
+   * Track an action with custom dimensions. This uses the Enhanced Ecommerce GA feature.
+   * @param  {Object} product       a object with product values
+   * @param  {String} screenName   The screen name
+   * @param  {String} actionList  The action list
+   * @param  {Object} customDimensionValues An object containing custom dimension key/value pairs
+   */
+  trackMeasuringActionsWithCustomDimensionValues(product = {}, screenName = "Home", actionList = "View Details", customDimensionValues) {
+    const formattedCustomDimensions = this.transformCustomDimensionsFieldsToIndexes(customDimensionValues);
+    GoogleAnalyticsBridge.trackMeasuringActionsWithCustomDimensionValues(this.id, product, screenName, actionList, formattedCustomDimensions);
+  }
+
+  /**
+   * Track an checkout step. This uses the Enhanced Ecommerce GA feature.
+   * @param  {Array} products      An array with product values
+   * @param  {String} screenName   The screen name
+   * @param  {Integer} step        The step
+   * @param  {String}              The option
+   */
+  trackMeasuringCheckout(products = [], screenName = "Home", step = 1, option = "checkoutStep1", customDimensionValues = {}) {
+    GoogleAnalyticsBridge.trackMeasuringCheckout(this.id, products, screenName, step, option, customDimensionValues);
+  }
+
+
+  /**
    * Track an exception
    * @param  {String} error The description of the error
    * @param  {Boolean} fatal A value indiciating if the error was fatal, defaults to false
@@ -216,13 +244,5 @@ export class GoogleAnalyticsTracker {
    */
   setSamplingRate(sampleRatio) {
     GoogleAnalyticsBridge.setSamplingRate(this.id, sampleRatio);
-  }
-  
-  /**
-   * Sets the currency for tracking.
-   * @param {String} currencyCode The currency ISO 4217 code
-   */
-  setCurrency(currencyCode) {
-    GoogleAnalyticsBridge.setCurrency(this.id, currencyCode);
   }
 }
